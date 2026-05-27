@@ -94,9 +94,13 @@ export default function BillPreview() {
         backgroundColor: '#FFFFFF',
       });
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfWidth = billRef.current.offsetWidth;
+      const pdfHeight = billRef.current.offsetHeight;
+      const pdf = new jsPDF({
+        orientation: pdfWidth > pdfHeight ? 'l' : 'p',
+        unit: 'px',
+        format: [pdfWidth, pdfHeight]
+      });
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Bill-${bill.bill_number}.pdf`);
       toast.success('PDF downloaded!');
