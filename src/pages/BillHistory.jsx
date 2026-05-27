@@ -107,54 +107,61 @@ export default function BillHistory() {
             <div className="history-icon">
               <FileText size={20} />
             </div>
-            <div className="history-info">
-              <h4>{getHomeName(bill)}</h4>
-              <p>{bill.bill_number} · {formatMonth(bill.month)}</p>
-            </div>
-            <div className="history-amount">
-              ₹{(bill.total_amount || 0).toLocaleString('en-IN')}
-            </div>
-            <span className={`house-status ${bill.status} history-status`}>
-              {bill.status}
-            </span>
-            <div style={{ display: 'flex', gap: '0.35rem', marginLeft: '0.35rem' }}>
-              <button
-                type="button"
-                className="btn-edit"
-                style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
-                onClick={() => navigate(`/bills/preview/${bill.id}`)}
-                title="View bill"
-              >
-                <Eye size={14} />
-              </button>
-              <button
-                type="button"
-                className="btn-edit"
-                style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
-                onClick={() => navigate(`/bills/edit/${bill.id}`)}
-                title="Edit bill"
-              >
-                <Edit size={14} />
-              </button>
-              {bill.status !== 'paid' && (
-                <button
-                  className="btn-success"
-                  style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer' }}
-                  onClick={() => handleMarkPaid(bill.id)}
-                  title="Mark as paid"
-                >
-                  <CheckCircle size={14} />
-                </button>
-              )}
-              <button
-                type="button"
-                className="btn-delete"
-                style={{ padding: '0.35rem 0.5rem', fontSize: '0.7rem' }}
-                onClick={() => setDeleteModal(bill)}
-                title="Delete bill"
-              >
-                <Trash2 size={14} />
-              </button>
+            
+            <div className="history-card-body">
+              <div className="history-info">
+                <h4>{getHomeName(bill)}</h4>
+                <div className="history-info-meta">
+                  {bill.bill_number} &middot; {formatMonth(bill.month)}
+                </div>
+              </div>
+
+              <div className="history-right-panel">
+                <div className="history-amount-status">
+                  <div className="history-amount">
+                    ₹{(bill.total_amount || 0).toLocaleString('en-IN')}
+                  </div>
+                  <span className={`house-status ${bill.status} history-status`}>
+                    {bill.status}
+                  </span>
+                </div>
+
+                <div className="history-actions">
+                  <button
+                    type="button"
+                    className="btn-edit"
+                    onClick={() => navigate(`/bills/preview/${bill.id}`)}
+                    title="View bill"
+                  >
+                    <Eye size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-edit"
+                    onClick={() => navigate(`/bills/edit/${bill.id}`)}
+                    title="Edit bill"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  {bill.status !== 'paid' && (
+                    <button
+                      className="btn-success"
+                      onClick={() => handleMarkPaid(bill.id)}
+                      title="Mark as paid"
+                    >
+                      <CheckCircle size={16} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn-delete"
+                    onClick={() => setDeleteModal(bill)}
+                    title="Delete bill"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
             </div>
           </motion.div>
         ))
