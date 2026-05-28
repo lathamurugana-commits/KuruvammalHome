@@ -76,6 +76,10 @@ export default function EditBill() {
       toast.error('Please select a billing month.');
       return;
     }
+    if (!dueDate) {
+      toast.error('Please select a due date.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -143,11 +147,12 @@ export default function EditBill() {
               />
             </div>
             <div className="form-group">
-              <label>Due Date</label>
+              <label>Due Date *</label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+                required
               />
             </div>
           </div>

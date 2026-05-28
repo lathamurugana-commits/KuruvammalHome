@@ -9,7 +9,6 @@ export default function HouseList() {
   const [homes, setHomes] = useState([]);
   const [bills, setBills] = useState([]);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState(null);
   const navigate = useNavigate();
@@ -70,13 +69,10 @@ export default function HouseList() {
   };
 
   const filteredHomes = homes.filter((home) => {
-    const matchesSearch =
+    return (
       home.home_name?.toLowerCase().includes(search.toLowerCase()) ||
-      home.tenant_name?.toLowerCase().includes(search.toLowerCase());
-
-    if (filter === 'all') return matchesSearch;
-    const status = getHomeStatus(home.id);
-    return matchesSearch && status === filter;
+      home.tenant_name?.toLowerCase().includes(search.toLowerCase())
+    );
   });
 
   if (loading) {
@@ -103,18 +99,6 @@ export default function HouseList() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-      </div>
-
-      <div className="filter-tabs">
-        {['all', 'paid', 'pending', 'overdue', 'none'].map((f) => (
-          <button
-            key={f}
-            className={`filter-tab${filter === f ? ' active' : ''}`}
-            onClick={() => setFilter(f)}
-          >
-            {f === 'none' ? 'No Bills' : f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
-        ))}
       </div>
 
       <AnimatePresence>

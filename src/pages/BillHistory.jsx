@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { FileText, Eye, CheckCircle, Edit, Trash2 } from 'lucide-react';
+import { FileText, Eye, CheckCircle, Edit, Trash2, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 export default function BillHistory() {
   const [bills, setBills] = useState([]);
   const [homes, setHomes] = useState([]);
+  const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState(null);
   const navigate = useNavigate();
@@ -46,14 +47,15 @@ export default function BillHistory() {
     return date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
   };
 
-  const handleMarkPaid = async (billId) => {
+  const toggleStatus = async (billId, currentStatus) => {
     try {
-      const { error } = await supabase.from('bills').update({ status: 'paid' }).eq('id', billId);
+      const newStatus = currentStatus === 'paid' ? 'pending' : 'paid';
+      const { error } = await supabase.from('bills').update({ status: newStatus }).eq('id', billId);
       if (error) throw error;
       setBills((prev) =>
-        prev.map((b) => (b.id === billId ? { ...b, status: 'paid' } : b))
+        prev.map((b) => (b.id === billId ? { ...b, status: newStatus } : b))
       );
-      toast.success('Marked as paid!');
+      toast.success(`Marked as ${newStatus === 'paid' ? 'paid' : 'unpaid'}!`);
     } catch (error) {
       toast.error('Failed to update status');
     }
@@ -71,6 +73,12 @@ export default function BillHistory() {
     setDeleteModal(null);
   };
 
+  const filteredBills = bills.filter((bill) => {
+    if (filter === 'all') return true;
+    if (filter === 'none') return !bill.status || bill.status === 'none';
+    return bill.status === filter;
+  });
+
   if (loading) {
     return (
       <div>
@@ -87,16 +95,28 @@ export default function BillHistory() {
       <h1 className="page-title">Bill History</h1>
       <p className="page-subtitle">View all generated bills</p>
 
-      {bills.length === 0 ? (
+      <div className="filter-tabs">
+        {['all', 'paid', 'pending', 'overdue', 'none'].map((f) => (
+          <button
+            key={f}
+            className={`filter-tab${filter === f ? ' active' : ''}`}
+            onClick={() => setFilter(f)}
+          >
+            {f === 'none' ? 'No Bills' : f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {filteredBills.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">
             <FileText size={36} />
           </div>
-          <h3>No bills yet</h3>
-          <p>Generate your first bill from the house list</p>
+          <h3>No bills found</h3>
+          <p>{bills.length === 0 ? 'Generate your first bill from the house list' : 'No bills match the selected filter'}</p>
         </div>
       ) : (
-        bills.map((bill, i) => (
+        filteredBills.map((bill, i) => (
           <motion.div
             key={bill.id}
             className="history-card"
@@ -126,7 +146,7 @@ export default function BillHistory() {
                   </span>
                 </div>
 
-                <div className="history-actions">
+                <div className="history-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexWrap: 'nowrap' }}>
                   <button
                     type="button"
                     className="btn-edit"
@@ -143,15 +163,14 @@ export default function BillHistory() {
                   >
                     <Edit size={16} />
                   </button>
-                  {bill.status !== 'paid' && (
-                    <button
-                      className="btn-success"
-                      onClick={() => handleMarkPaid(bill.id)}
-                      title="Mark as paid"
-                    >
-                      <CheckCircle size={16} />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className={bill.status === 'paid' ? "btn-edit" : "btn-success"}
+                    onClick={() => toggleStatus(bill.id, bill.status)}
+                    title={bill.status === 'paid' ? "Mark as unpaid" : "Mark as paid"}
+                  >
+                    {bill.status === 'paid' ? <RotateCcw size={16} /> : <CheckCircle size={16} />}
+                  </button>
                   <button
                     type="button"
                     className="btn-delete"

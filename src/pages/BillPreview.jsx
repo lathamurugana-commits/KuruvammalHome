@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { ArrowLeft, Download, Share2, CheckCircle, Save } from 'lucide-react';
+import { ArrowLeft, Download, Share2, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import html2canvas from 'html2canvas';
@@ -65,23 +65,19 @@ export default function BillPreview() {
     });
   };
 
-  const handleMarkPaid = async () => {
+  const toggleStatus = async () => {
     try {
+      const newStatus = bill.status === 'paid' ? 'pending' : 'paid';
       const { error } = await supabase
         .from('bills')
-        .update({ status: 'paid' })
+        .update({ status: newStatus })
         .eq('id', id);
       if (error) throw error;
-      setBill((prev) => ({ ...prev, status: 'paid' }));
-      toast.success('Bill marked as paid!');
+      setBill((prev) => ({ ...prev, status: newStatus }));
+      toast.success(`Bill marked as ${newStatus === 'paid' ? 'paid' : 'unpaid'}!`);
     } catch (error) {
-      toast.error('Failed to mark as paid');
+      toast.error('Failed to update status');
     }
-  };
-
-  const handleSaveBill = () => {
-    toast.success('Bill saved!');
-    navigate('/bills/history');
   };
 
   const handleDownloadPDF = async () => {
@@ -280,15 +276,13 @@ export default function BillPreview() {
             <Share2 size={18} />
             {sharing ? 'Sharing...' : 'WhatsApp'}
           </button>
-          {bill.status !== 'paid' && (
-            <button className="btn-primary" onClick={handleMarkPaid} style={{ gridColumn: '1 / -1', background: 'var(--success, #10b981)', border: 'none' }}>
-              <CheckCircle size={18} />
-              Mark as Paid
-            </button>
-          )}
-          <button className="btn-secondary" onClick={handleSaveBill} style={{ gridColumn: '1 / -1' }}>
-            <Save size={18} />
-            Save Bill
+          <button 
+            className={bill.status === 'paid' ? "btn-secondary" : "btn-primary"} 
+            onClick={toggleStatus} 
+            style={{ gridColumn: '1 / -1', ...(bill.status !== 'paid' ? { background: 'var(--success, #10b981)', border: 'none' } : {}) }}
+          >
+            <CheckCircle size={18} />
+            {bill.status === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}
           </button>
         </div>
       </motion.div>

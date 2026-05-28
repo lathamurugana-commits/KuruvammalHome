@@ -44,7 +44,6 @@ export default function Dashboard() {
 
   const [homesList, setHomesList] = useState([]);
   const [billsList, setBillsList] = useState([]);
-  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeModal, setActiveModal] = useState(null); // 'homes', 'generated', 'pending', 'paid', 'collection'
 
@@ -80,28 +79,7 @@ export default function Dashboard() {
 
       setStats({ totalHomes, totalBills, pending, paid, overdue, monthlyCollection, totalPendingAmount });
 
-      // Build notifications from homes with expiry dates
-      const notifList = [];
-      if (homes) {
-        homes.forEach((h) => {
-          if (h.expiry_date) {
-            const expiry = new Date(h.expiry_date);
-            const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
-            if (daysLeft < 0) {
-              notifList.push({ type: 'overdue', title: h.home_name, text: `Expired ${Math.abs(daysLeft)} days ago`, link: '/houses' });
-            } else if (daysLeft <= 7) {
-              notifList.push({ type: 'due-soon', title: h.home_name, text: `Expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`, link: '/houses' });
-            }
-          }
-        });
-      }
-      // Also add pending bills as notifications
-      if (bills) {
-        bills.filter((b) => b.status === 'pending').slice(0, 3).forEach((b) => {
-          notifList.push({ type: 'pending', title: `Bill ${b.bill_number}`, text: `₹${b.total_amount} pending`, link: '/bills' });
-        });
-      }
-      setNotifications(notifList.slice(0, 5));
+
     } catch (error) {
       console.error('Dashboard fetch error:', error);
     } finally {
@@ -109,11 +87,7 @@ export default function Dashboard() {
     }
   };
 
-  const getNotifIcon = (type) => {
-    if (type === 'overdue') return 'overdue';
-    if (type === 'due-soon') return 'due-soon';
-    return 'pending';
-  };
+
 
   if (loading) {
     return (
@@ -343,33 +317,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {notifications.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          <div className="section-header">
-            <h3>🔔 Notifications</h3>
-            <Link to="/notifications">See all</Link>
-          </div>
 
-          {notifications.map((notif, i) => (
-            <Link to={notif.link} key={i}>
-              <motion.div whileTap={{ scale: 0.98 }} className="notification-card" style={{ cursor: 'pointer' }}>
-                <div className={`notif-icon ${getNotifIcon(notif.type)}`}>
-                  <AlertTriangle size={18} />
-                </div>
-                <div className="notif-text">
-                  <h4>{notif.title}</h4>
-                  <p>{notif.text}</p>
-                </div>
-                <ChevronRight size={16} className="notif-arrow" />
-              </motion.div>
-            </Link>
-          ))}
-        </motion.div>
-      )}
 
       {/* BOTTOM SHEET MODAL */}
       <AnimatePresence>
