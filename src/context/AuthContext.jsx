@@ -20,19 +20,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Try to get session with a 5-second timeout
-    withTimeout(supabase.auth.getSession(), 5000)
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-      })
-      .catch((err) => {
-        console.warn('Auth session check failed:', err.message);
-        setUser(null);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
+    // Set up auth state listener FIRST so we don't miss any events
     let subscription;
     try {
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -42,8 +30,21 @@ export function AuthProvider({ children }) {
       subscription = data.subscription;
     } catch (err) {
       console.warn('Auth listener setup failed:', err);
-      setLoading(false);
     }
+
+    // Then try to get current session with a 10-second timeout
+    withTimeout(supabase.auth.getSession(), 10000)
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+      })
+      .catch((err) => {
+        console.warn('Auth session check failed:', err.message);
+        // Don't set user to null on timeout — the auth listener
+        // will handle session state if/when it resolves
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     return () => {
       if (subscription) subscription.unsubscribe();

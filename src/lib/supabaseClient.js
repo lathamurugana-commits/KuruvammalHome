@@ -9,5 +9,13 @@ if (!supabaseUrl || supabaseUrl === 'your-supabase-url-here') {
 
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      storageKey: 'kuruvammal-auth',
+      storage: window.localStorage,
+    },
+  }
 );
